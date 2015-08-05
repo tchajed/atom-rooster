@@ -5,6 +5,7 @@ class Lexer
   @END_COMMENT = END_COMMENT = new Object()
   @SENTENCE_TERM = SENTENCE_TERM = new Object()
   @EOF = EOF = new Object()
+  @RECURSIVE_PATTERN = RECURSIVE_PATTERN = new Object()
 
   constructor: (@s) ->
     @pos = 0
@@ -20,6 +21,9 @@ class Lexer
     @s = @s.substr(count)
     @pos += count
     return char
+
+  isWhitespace = (char) ->
+    /\s/.test(char) or char == EOF
 
   lex: () ->
     char = @eat()
@@ -44,8 +48,12 @@ class Lexer
     if char == "*" and @peek() == ")"
       @eat()
       return END_COMMENT
-    if char == "." and @peek() != "("
-      return SENTENCE_TERM
+    if char == "."
+      if isWhitespace @peek()
+        return SENTENCE_TERM
+      if @peek() == "."
+        @eat()
+        return RECURSIVE_PATTERN
     return char
 
 sentence_split = (text) ->

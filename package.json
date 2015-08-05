@@ -3,10 +3,12 @@
   "main": "./lib/atom-rooster",
   "version": "0.0.0",
   "description": "CoqIDE-like integration for Atom",
-  "keywords": ["coq", "coqide"],
+  "keywords": [
+    "coq",
+    "coqide"
+  ],
   "activationCommands": {
     "atom-workspace": "atom-rooster:toggle",
-    "atom-text-editor": "atom-rooster:find_stop",
     "atom-text-editor": "atom-rooster:mark_sentences"
   },
   "repository": "https://github.com/tchajed/atom-rooster",
@@ -16,5 +18,8 @@
   },
   "dependencies": {
     "coq-slave": "0.1.x"
+  },
+  "devDependencies": {
+    "jasmine-expect": "^1.22.3"
   }
 }

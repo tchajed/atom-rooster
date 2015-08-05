@@ -1,4 +1,5 @@
 {Lexer, Sentences} = require '../lib/coq-sentences.coffee'
+require 'jasmine-expect'
 
 string = (s) ->
   new Lexer.StringTok(s)
@@ -54,25 +55,42 @@ describe 'Lexer', ->
       expect(tokens s).toEqual ["a", " "]
 
 describe 'Sentence splitter', ->
-  [code, sentences] = []
+  describe 'basic code snippet', ->
+    [code, sentences] = []
 
-  beforeEach ->
-    code = """
-      foo.
-      bar.
-      (* a *).
-    """.trim()
-    sentences = new Sentences(code)
+    beforeEach ->
+      code = """
+        foo.
+        bar.
+        (* a *).
+      """.trim()
+      sentences = new Sentences(code)
 
-  it 'should return sentence locations', ->
-    expect(sentences.sentences).toEqual [
-      {start: 0,    stop: 4},
-      {start: 4,    stop: 4+5}, # includes newline
-      {start: 4+5,  stop: code.length},
-    ]
+    it 'should return sentence locations', ->
+      expect(sentences.sentences).toEqual [
+        {start: 0,    stop: 4},
+        {start: 4,    stop: 4+5}, # includes newline
+        {start: 4+5,  stop: code.length},
+      ]
 
-  it 'should locate surrounding sentence', ->
-    expect(sentences.boundaries(3)).toEqual {start: 0, stop: 4}
-    expect(sentences.boundaries(4)).toEqual {start: 4, stop: 4+5}
-    expect(sentences.boundaries(9)).toEqual {start: 9, stop: code.length}
-    expect(sentences.boundaries(code.length)).toBe null
+    it 'should locate surrounding sentence', ->
+      expect(sentences.boundaries(3)).toEqual {start: 0, stop: 4}
+      expect(sentences.boundaries(4)).toEqual {start: 4, stop: 4+5}
+      expect(sentences.boundaries(9)).toEqual {start: 9, stop: code.length}
+      expect(sentences.boundaries(code.length)).toBe null
+
+  describe 'non-sentence periods', ->
+    sentences = (code) ->
+      new Sentences(code).sentences
+
+    expectSingle = (code) ->
+      expect(sentences(code)).toBeArrayOfSize(1)
+
+    it 'should ignore module names', ->
+      expectSingle 'Import Coq.Arith.Factorial.'
+
+    it 'should ignore field-access method calls', ->
+      expectSingle 'let size := ck.(chunk_size)'
+
+    it 'should ignore recursive notation patterns', ->
+      expectSingle 'Notation "[a ; .. ; b]" := (cons a ( .. (cons b nil) ..)).'
