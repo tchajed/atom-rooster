@@ -5,7 +5,8 @@
   "description": "CoqIDE-like integration for Atom",
   "keywords": ["coq", "coqide"],
   "activationCommands": {
-    "atom-workspace": "atom-rooster:toggle"
+    "atom-workspace": "atom-rooster:toggle",
+    "atom-text-editor": "atom-rooster:find_stop"
   },
   "repository": "https://github.com/tchajed/atom-rooster",
   "license": "MIT",
