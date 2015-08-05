@@ -6,7 +6,8 @@
   "keywords": ["coq", "coqide"],
   "activationCommands": {
     "atom-workspace": "atom-rooster:toggle",
-    "atom-text-editor": "atom-rooster:find_stop"
+    "atom-text-editor": "atom-rooster:find_stop",
+    "atom-text-editor": "atom-rooster:mark_sentences"
   },
   "repository": "https://github.com/tchajed/atom-rooster",
   "license": "MIT",

@@ -1,5 +1,5 @@
 AtomRoosterView = require './atom-rooster-view'
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable, Range} = require 'atom'
 {Sentences} = require './coq-sentences'
 
 module.exports = AtomRooster =
@@ -23,6 +23,9 @@ module.exports = AtomRooster =
     @subscriptions.add atom.commands.add 'atom-text-editor',
       'atom-rooster:find_stop': => @find_stop()
 
+    @subscriptions.add atom.commands.add 'atom-text-editor',
+      'atom-rooster:mark_sentences': => @mark_sentences()
+
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
@@ -38,6 +41,24 @@ module.exports = AtomRooster =
       @modalPanel.hide()
     else
       @modalPanel.show()
+
+  mark_sentences: ->
+    editor = atom.workspace.getActiveTextEditor()
+    sentences = new Sentences(editor.getText())
+    i = 0
+    for sentence in sentences.sentences
+      buffer = editor.getBuffer()
+      start = buffer.positionForCharacterIndex(sentence.start+1)
+      stop = buffer.positionForCharacterIndex(sentence.stop-1)
+      marker = editor.markBufferRange(new Range(start, stop))
+      if i%2 == 0
+        css_class = "sentence0"
+      else
+        css_class = "sentence1"
+      editor.decorateMarker(marker,
+        {type: 'highlight',
+        class: css_class})
+      i += 1
 
   find_stop: ->
     editor = atom.workspace.getActiveTextEditor()
