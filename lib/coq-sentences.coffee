@@ -48,7 +48,7 @@ class Lexer
       return SENTENCE_TERM
     return char
 
-sentences = (text) ->
+sentence_split = (text) ->
   lexer = new Lexer(text)
   sentences = []
   while lexer.s.length > 0
@@ -58,7 +58,21 @@ sentences = (text) ->
     sentences.push {start, stop}
   return sentences
 
+class Sentences
+  constructor: (text="") ->
+    @update_text(text)
+
+  update_text: (text) ->
+    @text = text
+    @sentences = sentence_split text
+
+  boundaries: (offset) ->
+    for sentence in @sentences
+      if sentence.stop > offset
+        return sentence
+    return null
+
 module.exports =
   # exposed for testing
   Lexer: Lexer
-  sentences: sentences
+  Sentences: Sentences

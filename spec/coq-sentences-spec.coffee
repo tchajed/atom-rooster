@@ -1,4 +1,4 @@
-{Lexer, sentences} = require '../lib/coq-sentences.coffee'
+{Lexer, Sentences} = require '../lib/coq-sentences.coffee'
 
 string = (s) ->
   new Lexer.StringTok(s)
@@ -54,14 +54,25 @@ describe 'Lexer', ->
       expect(tokens s).toEqual ["a", " "]
 
 describe 'Sentence splitter', ->
-  it 'should return sentence locations', ->
+  [code, sentences] = []
+
+  beforeEach ->
     code = """
       foo.
       bar.
       (* a *).
     """.trim()
-    expect(sentences(code)).toEqual [
+    sentences = new Sentences(code)
+
+  it 'should return sentence locations', ->
+    expect(sentences.sentences).toEqual [
       {start: 0,    stop: 4},
       {start: 4,    stop: 4+5}, # includes newline
       {start: 4+5,  stop: code.length},
     ]
+
+  it 'should locate surrounding sentence', ->
+    expect(sentences.boundaries(3)).toEqual {start: 0, stop: 4}
+    expect(sentences.boundaries(4)).toEqual {start: 4, stop: 4+5}
+    expect(sentences.boundaries(9)).toEqual {start: 9, stop: code.length}
+    expect(sentences.boundaries(code.length)).toBe null
