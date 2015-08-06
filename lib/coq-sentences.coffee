@@ -3,12 +3,12 @@ class Lexer
   @StringTok = class StringTok
     constructor: (@s) ->
 
-  @END_COMMENT = END_COMMENT = new Object()
-  @SENTENCE_TERM = SENTENCE_TERM = new Object()
-  @EOF = EOF = new Object()
-  @RECURSIVE_PATTERN = RECURSIVE_PATTERN = new Object()
+  @END_COMMENT = END_COMMENT = {t: "end-comment"}
+  @SENTENCE_TERM = SENTENCE_TERM = {t: "term"}
+  @EOF = EOF = {t: "eof"}
+  @RECURSIVE_PATTERN = RECURSIVE_PATTERN = {t: "rec"}
   # {} and bullets '-'+ '+'+ '*'+
-  @NONDOT_TERM = NONDOT_TERM = new Object()
+  @NONDOT_TERM = NONDOT_TERM = {t: "nondot-term"}
 
   constructor: (@s) ->
     @pos = 0
@@ -31,22 +31,12 @@ class Lexer
 
   lex: () ->
     char = @eat()
-    if @initial and /{|}|\+|\-|\*/.test char
-      if /\+|\-|\*/.test char
-        # eat entire multi-char bullet
-        while @peek() == char
-          @eat()
-      return NONDOT_TERM
+    initial = @initial
     if @initial and not isWhitespace char
       @initial = false
-    if char == "\""
-      close = @s.indexOf("\"")
-      if close == -1
-        # eat rest
-        return new StringTok(@eat(@s.length))
-      s = @eat(close)
+    if char == "*" and @peek() == ")"
       @eat()
-      return new StringTok(s)
+      return END_COMMENT
     if char == "(" and @peek() == "*"
       @eat()
       @commentDepth += 1
@@ -57,9 +47,17 @@ class Lexer
             return EOF
         @commentDepth -= 1
       return @lex()
-    if char == "*" and @peek() == ")"
+    # parse only begin and end comments within comments
+    if @commentDepth > 0
+      return char
+    if char == "\""
+      close = @s.indexOf("\"")
+      if close == -1
+        # eat rest
+        return new StringTok(@eat(@s.length))
+      s = @eat(close)
       @eat()
-      return END_COMMENT
+      return new StringTok(s)
     if char == "."
       if isWhitespace @peek()
         @initial = true
@@ -67,6 +65,12 @@ class Lexer
       if @peek() == "."
         @eat()
         return RECURSIVE_PATTERN
+    if initial and /{|}|\+|\-|\*/.test char
+      if /\+|\-|\*/.test char
+        # eat entire multi-char bullet
+        while @peek() == char
+          s += @eat()
+      return NONDOT_TERM
     return char
 
 sentence_split = (text) ->

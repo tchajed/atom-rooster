@@ -85,6 +85,31 @@ describe 'Sentence splitter', ->
       expect(sentences.boundaries(9)).toEqual {start: 9, stop: code.length}
       expect(sentences.boundaries(code.length)).toBe null
 
+    it 'should handle comments with periods', ->
+      expectCount 3, """
+      Require Import Omega.
+
+      (* this comment ends with a period (regression test). *)
+      Foo.
+      Bar.
+      """
+
+    it 'should handle comment with incomplete string', ->
+      expectCount 2, """
+      (* here's a " string *)
+      Foo.
+      Bar.
+      """
+
+    it 'should handle comment with bullets', ->
+      expectCount 2, """
+      (** list:
+      * foo
+      * bar *)
+      Foo.
+      Bar.
+      """
+
   describe 'non-sentence periods', ->
     it 'should ignore module names', ->
       expectSingle 'Import Coq.Arith.Factorial.'
