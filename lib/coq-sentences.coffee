@@ -1,3 +1,4 @@
+# See ide/coq_lex.mll for CoqIDE implementation.
 class Lexer
   @StringTok = class StringTok
     constructor: (@s) ->
@@ -6,10 +7,13 @@ class Lexer
   @SENTENCE_TERM = SENTENCE_TERM = new Object()
   @EOF = EOF = new Object()
   @RECURSIVE_PATTERN = RECURSIVE_PATTERN = new Object()
+  # {} and bullets '-'+ '+'+ '*'+
+  @NONDOT_TERM = NONDOT_TERM = new Object()
 
   constructor: (@s) ->
     @pos = 0
     @commentDepth = 0
+    @initial = true
 
   peek: () ->
     return @s[0]
@@ -27,6 +31,14 @@ class Lexer
 
   lex: () ->
     char = @eat()
+    if @initial and /{|}|\+|\-|\*/.test char
+      if /\+|\-|\*/.test char
+        # eat entire multi-char bullet
+        while @peek() == char
+          @eat()
+      return NONDOT_TERM
+    if @initial and not isWhitespace char
+      @initial = false
     if char == "\""
       close = @s.indexOf("\"")
       if close == -1
@@ -50,6 +62,7 @@ class Lexer
       return END_COMMENT
     if char == "."
       if isWhitespace @peek()
+        @initial = true
         return SENTENCE_TERM
       if @peek() == "."
         @eat()
@@ -61,7 +74,8 @@ sentence_split = (text) ->
   sentences = []
   while lexer.s.length > 0
     start = lexer.pos
-    continue while lexer.lex() not in [Lexer.SENTENCE_TERM, Lexer.EOF]
+    continue while lexer.lex() not in [Lexer.SENTENCE_TERM,
+      Lexer.NONDOT_TERM, Lexer.EOF]
     stop = lexer.pos
     sentences.push {start, stop}
   return sentences

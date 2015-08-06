@@ -55,6 +55,12 @@ describe 'Lexer', ->
       expect(tokens s).toEqual ["a", " "]
 
 describe 'Sentence splitter', ->
+  expectCount = (count, code) ->
+    expect(new Sentences(code).sentences).toBeArrayOfSize(count)
+
+  expectSingle = (code) ->
+    expectCount(1, code)
+
   describe 'basic code snippet', ->
     [code, sentences] = []
 
@@ -80,12 +86,6 @@ describe 'Sentence splitter', ->
       expect(sentences.boundaries(code.length)).toBe null
 
   describe 'non-sentence periods', ->
-    sentences = (code) ->
-      new Sentences(code).sentences
-
-    expectSingle = (code) ->
-      expect(sentences(code)).toBeArrayOfSize(1)
-
     it 'should ignore module names', ->
       expectSingle 'Import Coq.Arith.Factorial.'
 
@@ -94,3 +94,57 @@ describe 'Sentence splitter', ->
 
     it 'should ignore recursive notation patterns', ->
       expectSingle 'Notation "[a ; .. ; b]" := (cons a ( .. (cons b nil) ..)).'
+
+  describe 'focus syntax', ->
+    it 'should handle record syntax', ->
+      expectSingle """
+        foo := {
+          a: 1
+          b: 2
+        }.
+        """
+
+   it 'should parse initial brackets', ->
+    expectCount 2, """
+      foo. {
+      """
+    expectCount 2, """
+      foo.
+      {
+      """
+
+  it 'should parse closing brackets', ->
+    expectCount 4, """
+      foo.
+      { foo bar. }
+      """
+    expectCount 4, """
+      foo.
+      { foo bar.
+      }
+      """
+
+  it 'should parse single-char bullets', ->
+    expectCount 4, """
+      * foo.
+      * bar.
+      """
+    expectCount 4, """
+      + foo. + bar.
+      """
+    expectCount 5, """
+      foo. - a.
+      - b.
+      """
+
+  it 'should parse multi-char bullets', ->
+    expectCount 2, """
+      ++ foo.
+      """
+    expectCount 4, """
+        --- bar.
+        ++ foo.
+        """
+    expectCount 3, """
+      foo. ** bar.
+      """
