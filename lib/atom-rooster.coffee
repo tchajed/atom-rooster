@@ -1,6 +1,7 @@
 AtomRoosterView = require './atom-rooster-view'
 {CompositeDisposable, Range} = require 'atom'
 {Sentences} = require './coq-sentences'
+{$} = require 'atom-space-pen-views'
 
 module.exports = AtomRooster =
   atomRoosterView: null
@@ -33,6 +34,12 @@ module.exports = AtomRooster =
 
   serialize: ->
     atomRoosterViewState: @atomRoosterView.serialize()
+
+  consumeStatusBar: (statusBar) ->
+    content = $("<span>Coq is not running</span>")
+    console.log content
+    statusBarTile = statusBar.addLeftTile(item: content,
+      priority: 100)
 
   toggle: ->
     console.log 'AtomRooster was toggled!'
